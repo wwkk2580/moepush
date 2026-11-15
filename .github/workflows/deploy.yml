@@ -11,21 +11,30 @@ jobs:
     name: Deploy
     steps:
       - uses: actions/checkout@v4
-      
-      - uses: pnpm/action-setup@v2
+
+      - uses: pnpm/action-setup@v4
         with:
           version: 9
-      
+
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          # Wrangler 要求 Node.js >= 22.12.0，因此必须使用 22
+          node-version: '22'
           cache: 'pnpm'
-          
+
       - name: Install Dependencies
         run: pnpm install --frozen-lockfile
 
       - name: Install Wrangler
-        run: pnpm i -g wrangler
+        # 锁定到一个明确支持 Node 22 的版本，避免未来 breaking change
+        run: pnpm i -g wrangler@^4.88.0
+
+      - name: Verify Toolchain
+        # 便于排查问题，打印实际使用的版本
+        run: |
+          node -v
+          pnpm -v
+          wrangler --version
 
       - name: Run Deploy Script
         run: pnpm dlx tsx scripts/deploy.ts
